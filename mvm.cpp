@@ -65,7 +65,7 @@ int main()
 
       // Use acceleration to solve for force
       f = m*a;
-      w = d*f;
+      w = d*f*-1;
 
       // Output
       results[i][j] = w;
@@ -85,18 +85,46 @@ int main()
 void script_out(ofstream &fout, double** a, int n, int m)
 {
   fout << "v = [";
-  for(int v=25; v<75; v+=5)
+  for(int v=25; v<76; v+=5)
   {
-    fout << v << ", ";
+    for(int i=0; i<m; i++)
+    {
+      fout << v;
+      if(v<75 | i<m-1)
+      {
+        fout << ", ";
+      }
+    }
   }
-  fout << "75];" << endl;
+  fout << "];" << endl;
 
   fout << "t = [";
-  for(double t = 3.0; t<7.9; t+=0.1)
+  for(int i=0; i<n; i++)
   {
-    fout << t << ", ";
+    for(double t = 3.0; t<=7.9; t+=0.1)
+    {
+      fout << t;
+      if(i<n | t <7.9)
+      {
+        fout << ", ";
+      }
+    }
   }
-  fout << "7.9];" << endl;
+  fout << "];" << endl;
+
+  fout << "w = [";
+  for(int i=0; i<n; i++)
+  {
+    for(int j=0; j<m; j++)
+    {
+      fout << a[i][j];
+      if(i<n-1 | j<m-1)
+      {
+        fout << ", ";
+      }
+    }
+  }
+  fout << "];" << endl;
 
   // TODO
 
@@ -114,6 +142,8 @@ void script_init(ofstream &fout)
 
 void script_finish(ofstream &fout)
 {
+  fout << "figure" << endl;
+  fout << "plot3(v,t,w)" << endl;
   fout << "% Script finished." << endl;
   return;
 }

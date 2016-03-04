@@ -16,6 +16,23 @@ int main()
   int count = 0;
   double mph_to_mps = 0.44704; // Factor for converting mph to m/s
 
+  // Future variables
+  // double I; // Current
+  // double c; // Capacitance
+  // Faraday's Law Variables
+  // Faraday's Law helps describe the electric generation process more clearly.
+  // Braking force is simply to control deceleration, but generation is really
+  // just a function of speed (RPM of the armature in the generator). Thus,
+  // generation will change as speed changes, so aim should be to be in the
+  // 'sweet spot' of rpms for the 'best' amount of time. Function of generation
+  // and feasability?
+  // double V; // Voltage generated
+  // double tire_d; // Tire diameter, for gearing/rpm purpose
+  // double rpm; // RPM of rear axle at time t and velocity v
+  // double n_turns; // Number of turns on the armature, proportion
+  // double B; // magnetic field
+  // double emf; // Electro magnetic force
+
   // Output array and file
   double** results;
   results = new double*[n_vel];
@@ -68,7 +85,8 @@ int main()
       w = d*f*-1;
 
       // Output
-      results[i][j] = w;
+      //results[i][j] = w;
+      results[i][j] = f;
     }
   }
 
@@ -112,7 +130,8 @@ void script_out(ofstream &fout, double** a, int n, int m)
   }
   fout << "];" << endl;
 
-  fout << "w = [";
+  //fout << "w = [";
+  fout << "f = [";
   for(int i=0; i<n; i++)
   {
     for(int j=0; j<m; j++)
@@ -143,7 +162,8 @@ void script_init(ofstream &fout)
 void script_finish(ofstream &fout)
 {
   fout << "figure" << endl;
-  fout << "plot3(v,t,w)" << endl;
+  //fout << "plot3(v,t,w,'.')" << endl;
+  fout << "plot3(v,t,f,'.')" << endl;
   fout << "% Script finished." << endl;
   return;
 }

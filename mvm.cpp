@@ -7,6 +7,7 @@ using namespace std;
 void script_out(ofstream &fout, double** a, int n, int m);
 void script_init(ofstream &fout);
 void script_finish(ofstream &fout);
+void dynamic_system_comps(double vi, double t);
 
 int main()
 {
@@ -20,6 +21,7 @@ int main()
   // double I; // Current
   // double c; // Capacitance
   // Faraday's Law Variables
+  // V = -N*A*(2*pi*RPM/60)*B
   // Faraday's Law helps describe the electric generation process more clearly.
   // Braking force is simply to control deceleration, but generation is really
   // just a function of speed (RPM of the armature in the generator). Thus,
@@ -33,7 +35,7 @@ int main()
   // double B; // magnetic field
   // double emf; // Electro magnetic force
 
-  // Output array and file
+  // Initialize static system results array and file
   double** results;
   results = new double*[n_vel];
   for(int i=0; i<n_vel; i++)
@@ -49,7 +51,7 @@ int main()
   out.open("capstone.m");
   if(out.fail())
   {
-    cerr << "Error: MATLAB script failes to open for writing.";
+    cerr << "Error: MATLAB script failed to open for writing.";
     exit(EXIT_FAILURE);
   }
 
@@ -67,7 +69,7 @@ int main()
 
   // Initialize Variables
 
-  // Computations
+  // Static System Computations
   for(int i=0; i<n_vel; i++)
   {
     vi = (25+5*i)*mph_to_mps;
@@ -90,6 +92,9 @@ int main()
     }
   }
 
+  // Dynamic System Computations
+  dynamic_system_comps(25.0*mph_to_mps, 3.0);
+
   script_init(out);
   script_out(out, results, n_vel, n_time);
   script_finish(out);
@@ -97,6 +102,22 @@ int main()
   delete[] results;
 
   return 0;
+}
+
+void dynamic_system_comps(double vi, double t)
+{
+  double a = vi/t;
+  double time = t;
+  const double step = 0.01;
+  double v = vi;
+
+  while(v > 0.0)
+  {
+    v-=a*step;
+    cout << " " << v << " ";
+    time-=step;
+  }
+  cout << endl;
 }
 
 

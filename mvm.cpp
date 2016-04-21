@@ -28,12 +28,17 @@ int main()
   // generation will change as speed changes, so aim should be to be in the
   // 'sweet spot' of rpms for the 'best' amount of time. Function of generation
   // and feasability?
+  // Charging voltage should range between 2-2.45 volts per cell, given a 6-cell
+  // 12v battery (like in Prius), this means charging voltage of 12-14.7v.
   // double V; // Voltage generated
-  // double tire_d; // Tire diameter, for gearing/rpm purpose
-  // double rpm; // RPM of rear axle at time t and velocity v
+  // double tire_d = 0.56388; // Tire diameter(m), for gearing/rpm purpose
+  // double mg2_rpm; // RPM of MG2 (Traction) at time t and velocity v
+  // double tire_rpm; // RPM of rear axle at time t and velocity v
+  // double final_drive = 3.905; //Final drive gear ratio
   // double n_turns; // Number of turns on the armature, proportion
   // double B; // magnetic field
   // double emf; // Electro magnetic force
+  // double C; // Placeholder for B*N*A*(2*pi/60) in Faraday's law
 
   // Initialize static system results array and file
   double** results;
@@ -110,9 +115,15 @@ void dynamic_system_comps(double vi, double t)
   double time = t;
   const double step = 0.01;
   double v = vi;
+  double tire_rpm = 0.0;
+  double tire_d = 0.56388;
+  double final_drive = 3.905;
+  double mg2_rpm = 0.0;
 
   while(v > 0.0)
   {
+    tire_rpm = 60*v/tire_d;
+    mg2_rpm = tire_rpm*final_drive;
     v-=a*step;
     cout << " " << v << " ";
     time-=step;

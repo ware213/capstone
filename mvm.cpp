@@ -7,7 +7,7 @@ using namespace std;
 void script_out(ofstream &fout, double** a, int n, int m);
 void script_init(ofstream &fout);
 void script_finish(ofstream &fout);
-void dynamic_system_comps(double vi, double t);
+void dynamic_system_comps(double n, double m, double* a);
 
 int main()
 {
@@ -29,7 +29,9 @@ int main()
   // 'sweet spot' of rpms for the 'best' amount of time. Function of generation
   // and feasability?
   // Charging voltage should range between 2-2.45 volts per cell, given a 6-cell
-  // 12v battery (like in Prius), this means charging voltage of 12-14.7v.
+  // 12v battery, this means charging voltage of 12-14.7v.
+  // Prius Battery: 168 cells, 201.6v, 6.5Ah
+  // MG2: 500V Max, 50kw output at 1200 rpm, 400 N*m  torque at 1200
   // double V; // Voltage generated
   // double tire_d = 0.56388; // Tire diameter(m), for gearing/rpm purpose
   // double mg2_rpm; // RPM of MG2 (Traction) at time t and velocity v
@@ -38,11 +40,13 @@ int main()
   // double n_turns; // Number of turns on the armature, proportion
   // double B; // magnetic field
   // double emf; // Electro magnetic force
-  // double C; // Placeholder for B*N*A*(2*pi/60) in Faraday's law
+  // double X = 500/6500; // Placeholder for B*N*A*(2*pi/60) in Faraday's law
 
   // Initialize static system results array and file
   double** results;
   results = new double*[n_vel];
+  double* joules_results;
+  joules_results = new double[50*n_vel*n_time];
   for(int i=0; i<n_vel; i++)
   {
     results[i] = new double[n_time];
@@ -77,12 +81,12 @@ int main()
   // Static System Computations
   for(int i=0; i<n_vel; i++)
   {
-    vi = (25+5*i)*mph_to_mps;
+    vi = (25+5.0*i)*mph_to_mps;
     for(int j=0; j<n_time; j++)
     {
-      t = 3+j*0.1;
+      t = 3.0+j*0.1;
       // Solve for displacement
-      d = t*(vi+vf)/2;
+      d = t*(vi+vf)/2.0;
 
       // Solve for acceleration
       a = (pow(vf,2)-pow(vi,2))/(2*d);
@@ -98,7 +102,7 @@ int main()
   }
 
   // Dynamic System Computations
-  dynamic_system_comps(25.0*mph_to_mps, 3.0);
+  dynamic_system_comps(n_vel,n_time,joules_results);
 
   script_init(out);
   script_out(out, results, n_vel, n_time);
@@ -109,26 +113,78 @@ int main()
   return 0;
 }
 
-void dynamic_system_comps(double vi, double t)
+void dynamic_system_comps(double n, double m, double* a)
 {
-  double a = vi/t;
-  double time = t;
   const double step = 0.01;
-  double v = vi;
-  double tire_rpm = 0.0;
   double tire_d = 0.56388;
   double final_drive = 3.905;
-  double mg2_rpm = 0.0;
+  double X_far;
+  X_far = (500.0 / 6500.0);
+  double mph_to_mps = 0.44704; // Factor for converting mph to m/s
+  int x = 0;
 
-  while(v > 0.0)
+
+
+  for(int i=0; i<n; i++)
   {
-    tire_rpm = 60*v/tire_d;
-    mg2_rpm = tire_rpm*final_drive;
-    v-=a*step;
-    cout << " " << v << " ";
-    time-=step;
+    for(int j=0; j<m; j++)
+    {
+      double vi = (25.0+5.0*i)*mph_to_mps;
+      double t = 3.0+j*0.1;
+      double a_const = vi/t;
+      double time;
+      double v;
+      double tire_rpm;
+      double mg2_rpm;
+      double joules;
+      double volts;
+      double safe_time;
+      double safe_a;
+      double a_i;
+
+      for(int i=0; i<50; i++)
+      {
+        time = t;
+        v = vi;
+        tire_rpm = 0.0;
+        mg2_rpm = 0.0;
+        joules = 0.0;
+        volts = 0.0;
+
+        safe_time = 1.5 + 2.0 * (v/33.528);
+        safe_a = v / safe_time;
+
+        a_i = (i/50.0)*a_const;
+
+        while(time > safe_time)
+        {
+          tire_rpm = 60.0*v/(3.14*tire_d);
+          mg2_rpm = tire_rpm*final_drive;
+          volts = X_far*mg2_rpm;
+          joules+= 50.0*volts*step;
+          v-=a_i*step;
+          //cout << " " << v << " ";
+          safe_time = 1.5 + 2.0 * (v/33.528);
+          safe_a = v / safe_time;
+          time-=step;
+        }
+        while(v > 0.0)
+        {
+          tire_rpm = 60.0*v/(3.14*tire_d);
+          mg2_rpm = tire_rpm*final_drive;
+          volts = X_far*mg2_rpm;
+          joules+= 50.0*volts*step;
+          v-=safe_a*step;
+          //cout << " " << v << " ";
+          time-=step;
+        }
+        //cout << endl;
+        //cout << "Joules: " << joules << endl;
+        a[x] = joules;
+        x++;
+      }
+    }
   }
-  cout << endl;
 }
 
 

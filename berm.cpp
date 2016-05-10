@@ -224,7 +224,7 @@ void script_out(ofstream &fout, double** a, double* b, int n, int m)
   {
     for(int j=0; j<m; j++)
     {
-      fout << a[i][j];
+      fout << -a[i][j];
       if(i<n-1 | j<m-1)
       {
         fout << ", ";
@@ -308,6 +308,10 @@ void script_finish(ofstream &fout)
   fout << "figure" << endl;
   //fout << "plot3(v,t,w,'.')" << endl;
   fout << "plot3(v,t,f,'.')" << endl;
+  fout << "title('Static System Computations')" << endl;
+  fout << "xlabel('Initial Velocity')" << endl;
+  fout << "ylabel('Stopping Time')" << endl;
+  fout << "zlabel('Brake Force Required')" << endl;
   fout << "% Script finished." << endl;
   return;
 }
